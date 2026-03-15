@@ -72,16 +72,59 @@
  *   isLassiStand({});                       // => false
  */
 export function LassiStand(name, city) {
-  // Your code here
+  this.name = name
+  this.city = city
+  this.menu = []
+  this.orders = []
+  this._nextOrderId = 0
 }
 
 // Add prototype methods here:
-// LassiStand.prototype.addFlavor = function(flavor, price) { ... }
-// LassiStand.prototype.takeOrder = function(customerName, flavor, quantity) { ... }
-// LassiStand.prototype.completeOrder = function(orderId) { ... }
-// LassiStand.prototype.getRevenue = function() { ... }
-// LassiStand.prototype.getMenu = function() { ... }
+LassiStand.prototype.addFlavor = function (flavor, price) {
+  if (price <= 0) return -1;
+  let idx = this.menu.findIndex(item => item.flavor === flavor)
+  if (idx != -1) return -1
+
+  this.menu.push({ flavor, price })
+
+  return this.menu.length
+}
+LassiStand.prototype.takeOrder = function (customerName, flavor, quantity) {
+  if (quantity <= 0) return -1;
+  let flavorArr = this.menu.filter((item => item.flavor === flavor))
+  if (flavorArr.length <= 0) return -1
+  this._nextOrderId++;
+  let price = flavorArr[0].price
+  let total = price * quantity
+  this.orders.push({ id: this._nextOrderId, customer: customerName, flavor, quantity, total, status: "pending" })
+  return this._nextOrderId
+}
+LassiStand.prototype.completeOrder = function (orderId) {
+  let orderIdx = this.orders.findIndex(item => item.id === orderId)
+
+  if (orderIdx === -1) return false;
+  if (this.orders[orderIdx].status === "completed") return false;
+
+  this.orders[orderIdx].status = "completed"
+
+  return true;
+}
+// Check the order id you store inside the order object in takeOrder and compare it with the id you return and later search for in completeOrder — they are not the same.
+LassiStand.prototype.getRevenue = function () {
+  let total = 0;
+  this.orders.forEach(item => {
+    if (item.status === 'completed') {
+      total += item.total
+    }
+  })
+
+  return total
+}
+LassiStand.prototype.getMenu = function () {
+  return structuredClone(this.menu)
+}
 
 export function isLassiStand(obj) {
-  // Your code here
+  if (obj instanceof LassiStand) return true;
+  return false
 }
