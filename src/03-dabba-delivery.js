@@ -76,30 +76,82 @@
  */
 export class DabbaService {
   constructor(serviceName, area) {
-    // Your code here
+    this.serviceName = serviceName
+    this.area = area
+    this.customers = []
+    this._nextId = 1
   }
 
   addCustomer(name, address, mealPreference) {
-    // Your code here
+    if (mealPreference != 'veg' && mealPreference != 'nonveg' && mealPreference != 'jain') return null;
+
+    let idx = this.customers.findIndex(item => item.name === name);
+    if (idx != -1) return null;
+
+    const customerObj = { id: this._nextId++, name, address, mealPreference, active: true, delivered: false }
+
+    this.customers.push(customerObj);
+
+    return customerObj
   }
 
   removeCustomer(name) {
-    // Your code here
+    let idx = this.customers.findIndex(item => item.name === name);
+
+    if (idx === -1) return false;
+    if (!this.customers[idx].active) return false;
+
+    this.customers[idx].active = false;
+
+    return true;
   }
 
   createDeliveryBatch() {
-    // Your code here
+    let deliveredBatch = []
+
+    for (let i = 0; i < this.customers.length; i++) {
+      if (this.customers[i].active) {
+        deliveredBatch.push({ customerId: this.customers[i].id, name: this.customers[i].name, address: this.customers[i].address, mealPreference: this.customers[i].mealPreference, batchTime: new Date().toISOString() })
+
+        this.customers[i].delivered = false;
+      }
+    }
+    return deliveredBatch;
   }
 
   markDelivered(customerId) {
-    // Your code here
+    let idx = this.customers.findIndex(item => item.id == customerId)
+
+    if (idx === -1 || this.customers[idx].delivered) {
+      return false
+    }
+
+    this.customers[idx].delivered = true
+
+    return true
   }
 
   getDailyReport() {
-    // Your code here
+    let delivered = 0
+    let pending = 0
+    let mealBreakdown = { "veg": 0, "nonveg": 0, "jain": 0 }
+    let activeCustomers = this.customers.filter(item => item.active === true)
+
+    for (let i = 0; i < activeCustomers.length; i++) {
+      if (activeCustomers[i].delivered) delivered++;
+      else pending++;
+
+      mealBreakdown[activeCustomers[i].mealPreference]++;
+    };
+
+    return { totalCustomers: activeCustomers.length, delivered, pending, mealBreakdown };
   }
 
   getCustomer(name) {
-    // Your code here
+    let customer = this.customers.find(customer => customer.name === name)
+
+    if (customer) return customer
+
+    return null
   }
 }
